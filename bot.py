@@ -190,23 +190,32 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await start(update, context)
 
 def main():
-    # Khởi tạo ứng dụng Telegram
-    application = Application.builder().token("YOUR_TELEGRAM_BOT_TOKEN").build()
-
-    # Đăng ký các handler cho các lệnh và tin nhắn
+    # Lấy token từ biến môi trường
+    BOT_TOKEN = os.environ.get("BOT_TOKEN")
+    
+    if not BOT_TOKEN:
+        logger.error("Không tìm thấy BOT_TOKEN trong biến môi trường!")
+        return
+    
+    # Chạy Flask server trong thread riêng
+    flask_thread = Thread(target=run_flask)
+    flask_thread.daemon = True
+    flask_thread.start()
+    logger.info("Flask server đã khởi động")
+    
+    # Tạo application
+    application = Application.builder().token(BOT_TOKEN).build()
+    
+    # Đăng ký các handlers
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("help", help_command))
     application.add_handler(CommandHandler("encode", encode_command))
     application.add_handler(CommandHandler("decode", decode_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
-
-    # Bắt đầu chạy bot
-    application.run_polling()
-
-if __name__ == "__main__":
-    # Chạy Flask trong luồng riêng
-    flask_thread = Thread(target=run_flask)
-    flask_thread.start()
     
-    # Chạy bot Telegram
+    # Bắt đầu bot
+    logger.info("Bot đang khởi động...")
+    application.run_polling(allowed_updates=Update.ALL_TYPES)
+
+if __name__ == '__main__':
     main()
