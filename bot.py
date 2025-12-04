@@ -5,7 +5,6 @@ import base64
 import os
 from flask import Flask
 from threading import Thread
-
 # Cấu hình logging
 logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
@@ -50,6 +49,10 @@ def decode_from_base64(base64_string: str) -> str:
 
 # Command /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    ALLOWED_USER_ID = 5266362838  # Thay bằng ChatID của bạn
+    if update.message.from_user.id != ALLOWED_USER_ID:
+        return
+    
     welcome_message = """
 🤖 *Chào mừng bạn đến với Code Encoder Bot!*
 
@@ -111,7 +114,6 @@ async def encode_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 🔑 *Chuỗi base64:* `{encoded}`
 
-📥 *Tải xuống file base64:* [Nhấn vào đây](sandbox:/tmp/encoded_file.b64)
 
 *Lưu ý: *
 
@@ -149,8 +151,6 @@ async def decode_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🔑 *Chuỗi base64:* `{base64_string}`
 
 📝 *Code gốc:* `{decoded}`
-
-📥 *Tải xuống file code:* [Nhấn vào đây](sandbox:/tmp/decoded_file.py)
 
 *Lưu ý: *
 
@@ -203,8 +203,6 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 🔐 *Base64:* `{text}`
 
 📝 *Code gốc:* `{decoded}`
-
-📥 *Tải xuống file code:* [Nhấn vào đây](sandbox:/tmp/decoded_file.py)
 
 *Lưu ý: *
 
