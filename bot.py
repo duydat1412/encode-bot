@@ -34,7 +34,7 @@ def run_flask():
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
-    model = genai.GenerativeModel('gemini-pro')
+    model = genai.GenerativeModel('gemini-1.5-flash')
     logger.info("Gemini AI đã được khởi tạo")
 else:
     model = None
@@ -66,10 +66,6 @@ async def ai_analyze_code(code: str) -> str:
         return "❌ Tính năng AI chưa được kích hoạt. Vui lòng liên hệ admin."
     
     try:
-        # Giới hạn độ dài code để tránh vượt quá token limit
-        if len(code) > 3000:
-            code = code[:3000] + "\n... (đã cắt bớt do quá dài)"
-        
         prompt = f"""
 Phân tích đoạn code JavaScript/Python sau đây đã bị obfuscate/encode:
 
