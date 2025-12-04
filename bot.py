@@ -107,4 +107,106 @@ async def encode_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         response = f"""
 ✅ *Mã hóa thành công!*
 
-📝 *Code gốc:*
+📝 *Code gốc:* `{code}`
+
+🔑 *Chuỗi base64:* `{encoded}`
+
+📥 *Tải xuống file base64:* [Nhấn vào đây](sandbox:/tmp/encoded_file.b64)
+
+*Lưu ý: *
+
+• File sẽ tự động xóa sau 1 giờ.
+• Không chia sẻ chuỗi base64 ở nơi công cộng nếu code chứa thông tin nhạy cảm.
+"""
+        await update.message.reply_text(response, parse_mode='Markdown')
+        
+        # Ghi chuỗi base64 vào file
+        try:
+            with open('/tmp/encoded_file.b64', 'w') as f:
+                f.write(encoded)
+        except Exception as e:
+            logger.error(f"Lỗi khi ghi file: {e}")
+            await update.message.reply_text("❌ Lỗi khi tạo file tải xuống.")
+    else:
+        await update.message.reply_text("❌ Đã xảy ra lỗi trong quá trình mã hóa. Vui lòng thử lại sau.")
+
+# Command /decode
+async def decode_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    if not context.args:
+        await update.message.reply_text(
+            "❌ Vui lòng cung cấp chuỗi base64 cần giải mã!\n\n"
+            "Cách dùng: /decode <chuỗi base64>"
+        )
+        return
+    
+    base64_string = ' '.join(context.args)
+    decoded = decode_from_base64(base64_string)
+    
+    if decoded:
+        response = f"""
+✅ *Giải mã thành công!*
+
+🔑 *Chuỗi base64:* `{base64_string}`
+
+📝 *Code gốc:* `{decoded}`
+
+📥 *Tải xuống file code:* [Nhấn vào đây](sandbox:/tmp/decoded_file.py)
+
+*Lưu ý: *
+
+• File sẽ tự động xóa sau 1 giờ.
+• Kiểm tra kỹ code trước khi chạy, đặc biệt là thông tin nhạy cảm.
+"""
+        await update.message.reply_text(response, parse_mode='Markdown')
+        
+        # Ghi code gốc vào file
+        try:
+            with open('/tmp/decoded_file.py', 'w') as f:
+                f.write(decoded)
+        except Exception as e:
+            logger.error(f"Lỗi khi ghi file: {e}")
+            await update.message.reply_text("❌ Lỗi khi tạo file tải xuống.")
+    else:
+        await update.message.reply_text("❌ Đã xảy ra lỗi trong quá trình giải mã. Vui lòng thử lại sau.")
+
+# Xử lý tin nhắn văn bản
+async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text.strip()
+    
+    # Bỏ qua tin nhắn rỗng
+    if not text:
+        return
+    
+    # Kiểm tra và xử lý mã hóa
+    if text.startswith('/encode '):
+        context.args = text[len('/encode '):].split()
+        await encode_command(update, context)
+    # Kiểm tra và xử lý giải mã
+    elif text.startswith('/decode '):
+        context.args = text[len('/decode '):].split()
+        await decode_command(update, context)
+    # Gửi hướng dẫn sử dụng nếu không nhận diện được lệnh
+    else:
+        await start(update, context)
+
+def main():
+    # Khởi tạo ứng dụng Telegram
+    application = Application.builder().token("YOUR_TELEGRAM_BOT_TOKEN").build()
+
+    # Đăng ký các handler cho các lệnh và tin nhắn
+    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("help", help_command))
+    application.add_handler(CommandHandler("encode", encode_command))
+    application.add_handler(CommandHandler("decode", decode_command))
+    application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+
+    # Bắt đầu chạy bot
+    application.run_polling()
+
+if __name__ == "__main__":
+    # Chạy Flask trong luồng riêng
+    flask_thread = Thread(target=run_flask)
+    flask_thread.start()
+    
+    # Chạy bot Telegram
+    main()
