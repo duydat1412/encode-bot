@@ -189,6 +189,43 @@ async def handle_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
     else:
         await start(update, context)
 
+# Xử lý tin nhắn text (tự động phát hiện)
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    text = update.message.text
+    
+    # Kiểm tra xem có phải base64 không
+    if all(c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=' for c in text.strip()):
+        decoded = decode_from_base64(text)
+        if decoded:
+            response = f"""
+🔍 *Phát hiện base64 - Đã giải mã!*
+
+🔐 *Base64:* `{text}`
+
+📝 *Code gốc:* `{decoded}`
+
+📥 *Tải xuống file code:* [Nhấn vào đây](sandbox:/tmp/decoded_file.py)
+
+*Lưu ý: *
+
+• File sẽ tự động xóa sau 1 giờ.
+• Kiểm tra kỹ code trước khi chạy, đặc biệt là thông tin nhạy cảm.
+"""
+            await update.message.reply_text(response, parse_mode='Markdown')
+            
+            # Ghi code gốc vào file
+            try:
+                with open('/tmp/decoded_file.py', 'w') as f:
+                    f.write(decoded)
+            except Exception as e:
+                logger.error(f"Lỗi khi ghi file: {e}")
+                await update.message.reply_text("❌ Lỗi khi tạo file tải xuống.")
+        else:
+            await update.message.reply_text("❌ Đã xảy ra lỗi trong quá trình giải mã. Vui lòng thử lại sau.")
+    # Nếu không phải base64, kiểm tra và xử lý như tin nhắn văn bản bình thường
+    else:
+        await handle_text(update, context)
+
 def main():
     # Lấy token từ biến môi trường
     BOT_TOKEN = os.environ.get("BOT_TOKEN")
@@ -212,6 +249,7 @@ def main():
     application.add_handler(CommandHandler("encode", encode_command))
     application.add_handler(CommandHandler("decode", decode_command))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
+    application.add_handler(MessageHandler(filters.TEXT, handle_message))
     
     # Bắt đầu bot
     logger.info("Bot đang khởi động...")
