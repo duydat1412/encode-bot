@@ -35,21 +35,15 @@ GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     try:
-        # Thử model gemini-pro trước
-        model = genai.GenerativeModel('gemini-pro')
-        logger.info("Gemini AI (gemini-pro) đã được khởi tạo")
-    except:
-        try:
-            # Nếu lỗi, thử gemini-1.0-pro
-            model = genai.GenerativeModel('gemini-1.0-pro')
-            logger.info("Gemini AI (gemini-1.0-pro) đã được khởi tạo")
-        except Exception as e:
-            model = None
-            logger.error(f"Không thể khởi tạo Gemini: {e}")
+        # SỬA: Dùng model gemini-1.5-flash (nhanh và ổn định hơn)
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        logger.info("Gemini AI (gemini-1.5-flash) đã được khởi tạo thành công")
+    except Exception as e:
+        model = None
+        logger.error(f"Không thể khởi tạo Gemini: {e}")
 else:
     model = None
     logger.warning("Không tìm thấy GEMINI_API_KEY - Tính năng AI sẽ bị tắt")
-
 # Hàm encode code thành base64
 def encode_to_base64(code: str) -> str:
     try:
