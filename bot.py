@@ -7,6 +7,17 @@ import re
 from flask import Flask
 from threading import Thread
 import google.generativeai as genai
+# THÊM ĐOẠN NÀY ĐỂ DEBUG:
+print(f"\n📢 --- KIỂM TRA PHIÊN BẢN ---")
+print(f"📢 Thư viện GenAI đang chạy: {genai.__version__}")
+try:
+    print("📢 Danh sách Model tài khoản này được phép dùng:")
+    for m in genai.list_models():
+        if 'generateContent' in m.supported_generation_methods:
+            print(f"   - {m.name}")
+except Exception as e:
+    print(f"📢 Lỗi khi lấy danh sách model: {e}")
+print(f"-----------------------------\n")
 
 # Cấu hình logging
 logging.basicConfig(
@@ -36,7 +47,7 @@ if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     try:
         # SỬA: Dùng model gemini-1.5-flash (nhanh và ổn định hơn)
-        model = genai.GenerativeModel('gemini-1.5-flash')
+        model = genai.GenerativeModel('gemini-1.5-flash-001')
         logger.info("Gemini AI (gemini-1.5-flash) đã được khởi tạo thành công")
     except Exception as e:
         model = None
