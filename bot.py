@@ -47,7 +47,7 @@ if GEMINI_API_KEY:
     genai.configure(api_key=GEMINI_API_KEY)
     try:
         # SỬA: Dùng model gemini-1.5-flash (nhanh và ổn định hơn)
-        model = genai.GenerativeModel('gemini-1.5-flash-001')
+        model = genai.GenerativeModel('gemini-2.5-flash')
         logger.info("Gemini AI (gemini-1.5-flash) đã được khởi tạo thành công")
     except Exception as e:
         model = None
