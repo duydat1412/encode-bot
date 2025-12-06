@@ -1,2 +1,3 @@
 ﻿# Telegram Code Encoder Bot
-Bot mã hóa code thành base64
+Bot mã hóa text tích hợp gemini,.
+
